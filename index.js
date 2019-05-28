@@ -136,6 +136,11 @@ server.delete('/api/users/:id', (req, res) => {
 server.put('/api/users/:id', (req, res) => {
     const id = req.params.id;
     const changes = req.body;
+    const { name, bio } = req.body;
+    console.log(changes)
+    if (!name || !bio){
+        return res.status(400).json({ message: 'Please provide name and bio for the user.'})
+    } 
     db
     .update(id, changes)
     .then(updated => {
