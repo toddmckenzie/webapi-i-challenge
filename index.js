@@ -77,19 +77,21 @@ server.get('/api/users', (req, res) => {
 
 server.get('/api/users/:id', (req, res) => {
     const id = req.params.id;
-    const findId = db.findById(id);
-        if (!findId) { 
-            return res.status(400).json({ message: 'The user with the specified ID does not exist' });
+ 
+    db
+    .findById(id)
+    .then(user => {
+        if (user){
+            res.status(200).json(user)
         } else {
-        db
-        .findById(id)
-        .then(users => {
-            res.status(200).json(users)
-        })
-        .catch(err => {
-            res.status(500).json({ error: 'The user information could not be retrived.'})
-        })
-    }
+            res.status(404).json({ message: 'user not found'})
+        }
+        
+    })
+    .catch(err => {
+        es.status(500).json({ error: 'The user information could not be retrived.'})
+    })
+    
 })
 
 
@@ -108,25 +110,28 @@ server.get('/api/users/:id', (req, res) => {
 //         return HTTP statuse code 200 (OK)
 //         return the newly updated user document.
 
+//delete working
 
 server.delete('/api/users/:id', (req, res) => {
     const id = req.params.id;
     const findId = db.findById(id);
-    if (!findId){
-        return res.status(404).json({ message: 'The user with the specified ID does not exist'})
-    } else {
         db
         .remove(id)
         .then(deleted => {
-            res.status(204).end();
+            if (deleted) {
+                res.status(204).end();
+            } else {
+                res.status(404).json({ message: 'user not found'})
+            }
+             
         })
         .catch(err => {
             res.status(500).json({ error: 'Error deleting the hub'})
         })
-    }
-})
+    })
 
 //update user
+//update working
 
 server.put('/api/users/:id', (req, res) => {
     const id = req.params.id;
@@ -140,5 +145,5 @@ server.put('/api/users/:id', (req, res) => {
             res.status(404).json({ message: 'user not found'})
         }
     })
-    .catch(err => res.status(500).json({ error: 'The user nformation could not be modified.'}))
+    .catch(err => res.status(500).json({ error: 'The user information could not be modified.'}))
 })
