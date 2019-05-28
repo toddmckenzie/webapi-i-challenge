@@ -6,6 +6,8 @@ const db = require('./data/db.js');
 
 const server = express();
 
+
+
 server.listen(5000, () => {
     console.log('listening on port 5000')
 })
@@ -13,7 +15,7 @@ server.listen(5000, () => {
 server.use(express.json());
 
 // making a post request to /api/users
-// if request body is missing name or bio: cancel request respsond with http:400 bad request 
+// if request body is missing name or bio: cancel request respond with http:400 bad request 
 // return json { errorMessage: 'Please provide name and bio for the user'}
 // if info about user is valid: save the user to the database,
 // return httpstatus 201 (created) and return newly created user document.
@@ -26,12 +28,17 @@ server.use(express.json());
 //500-559 servor error
 
 server.post('/api/users', (req, res) => {
-    db.users.find()
-    .then(users => {
-        res.status(200).json(users)
+    const userInfo = req.body;
+    const { name, bio } = req.body;
+    if (!name || !bio ){
+        return res.status(400).json({ message: 'Please provide name and bio for the user.'})
+    } 
+    db.insert(userInfo)
+    .then(user => {
+        res.status(201).json(user)
     })
     .catch(error => {
-        res.status(500).json('errr')
+        res.status(500).json({ message: 'error creating the data' })
     })
 })
 
@@ -64,7 +71,17 @@ server.get('/api/users', (req, res) => {
 //         cancel request , respond with HTTP status code 500.
 //         return { error: 'The user information could not be retrieved.'}
 
+server.get('/api/users:id', (req, res) => {
 
+    db
+    .findById(req)
+    .then(user => {
+        res.status(200).json(user)
+    })
+    .catch(err => {
+        res.status(500).json({ error: 'The user information could not be retrived.'})
+    })
+})
 
 
 
@@ -83,6 +100,16 @@ server.get('/api/users', (req, res) => {
 //         return the newly updated user document.
 
 
-
+server.delete('/api/users/:id', (req, res) => {
+    const id = req.params.id;
+    db
+    .remove(id)
+    .then(deletedr => {
+        res.status(204).end();
+    })
+    .catch(err => {
+        res.status(500).json({ error: 'Error deleting the hub'})
+    })
+})
 
 
