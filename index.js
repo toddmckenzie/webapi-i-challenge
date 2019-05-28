@@ -27,6 +27,8 @@ server.use(express.json());
 //400-499 client error
 //500-559 servor error
 
+//working post
+
 server.post('/api/users', (req, res) => {
     const userInfo = req.body;
     const { name, bio } = req.body;
@@ -49,7 +51,9 @@ server.post('/api/users', (req, res) => {
     // cancel the requestAnimationFrame. repsond with http status code 500.
     // return json object { error: 'The users information could not be retrieved.'}
 
-server.get('/api/users', (req, res) => {
+    //working get 
+
+server.get('/api/users', (req, res) => { 
     db
     .find()
     .then(users => {
@@ -71,16 +75,21 @@ server.get('/api/users', (req, res) => {
 //         cancel request , respond with HTTP status code 500.
 //         return { error: 'The user information could not be retrieved.'}
 
-server.get('/api/users:id', (req, res) => {
-
-    db
-    .findById(req)
-    .then(user => {
-        res.status(200).json(user)
-    })
-    .catch(err => {
-        res.status(500).json({ error: 'The user information could not be retrived.'})
-    })
+server.get('/api/users/:id', (req, res) => {
+    const id = req.params.id;
+    const findId = db.findById(id);
+        if (!findId) { 
+            return res.status(400).json({ message: 'The user with the specified ID does not exist' });
+        } else {
+        db
+        .findById(id)
+        .then(users => {
+            res.status(200).json(users)
+        })
+        .catch(err => {
+            res.status(500).json({ error: 'The user information could not be retrived.'})
+        })
+    }
 })
 
 
@@ -89,7 +98,7 @@ server.get('/api/users:id', (req, res) => {
 // when client makes a delete request to /api/users/:id:
 //     if user id not found:
 //         return HTTP status 404 not found
-//         return json obj { message: 'The suer witht the specified ID does not exist'}
+//         return json obj { message: 'The user witht the specified ID does not exist'}
 //     if the reqeust body is missing ht ename or bio property:
 //         cancel request.
 //         respond with HTTP STATUS code 400 (bad request)
@@ -102,14 +111,34 @@ server.get('/api/users:id', (req, res) => {
 
 server.delete('/api/users/:id', (req, res) => {
     const id = req.params.id;
-    db
-    .remove(id)
-    .then(deletedr => {
-        res.status(204).end();
-    })
-    .catch(err => {
-        res.status(500).json({ error: 'Error deleting the hub'})
-    })
+    const findId = db.findById(id);
+    if (!findId){
+        return res.status(404).json({ message: 'The user with the specified ID does not exist'})
+    } else {
+        db
+        .remove(id)
+        .then(deleted => {
+            res.status(204).end();
+        })
+        .catch(err => {
+            res.status(500).json({ error: 'Error deleting the hub'})
+        })
+    }
 })
 
+//update user
 
+server.put('/api/users/:id', (req, res) => {
+    const id = req.params.id;
+    const changes = req.body;
+    db
+    .update(id, changes)
+    .then(updated => {
+        if(updated) {
+            res.status(200).json(updated)
+        }else {
+            res.status(404).json({ message: 'user not found'})
+        }
+    })
+    .catch(err => res.status(500).json({ error: 'The user nformation could not be modified.'}))
+})
